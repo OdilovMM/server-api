@@ -1,7 +1,7 @@
 const { BadRequestError, CustomAPIError } = require("../errors");
 const User = require("../models/userModel");
 const { StatusCodes } = require("http-status-codes");
-const { createSendToken, verifyMyToken } = require("../utils/jwt");
+const { attachCookieResponse } = require("../utils/jwt");
 
 const register = async (req, res) => {
   const { email, name, mobile, password } = req.body;
@@ -23,11 +23,8 @@ const register = async (req, res) => {
   });
 
   const tokenUser = { name: user.name, userId: user._id, role: user.role };
-  const token = createSendToken({ payload: tokenUser });
-
-  res
-    .status(StatusCodes.CREATED)
-    .json({ status: "success", user: tokenUser, token });
+  attachCookieResponse({ res, user: tokenUser });
+  res.status(StatusCodes.CREATED).json({ status: "success", user: tokenUser });
 };
 
 const login = async (req, res) => {

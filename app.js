@@ -9,6 +9,7 @@ const cors = require("cors");
 const xss = require("xss-clean");
 const rateLimit = require("express-rate-limit");
 const morgan = require("morgan");
+const cookieParser = require("cookie-parser");
 
 cloudianry.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -24,6 +25,7 @@ const authRouter = require("./routes/authRoutes");
 app.use(express.static("./public"));
 app.use(express.json());
 app.use(fileUpload({ useTempFiles: true }));
+app.use(cookieParser(process.env.JWT_SECRET));
 
 // Limit requests from same API
 const limiter = rateLimit({
