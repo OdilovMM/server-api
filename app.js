@@ -19,6 +19,7 @@ cloudianry.config({
 // error handler imports
 const notFoundMiddleware = require("./middleware/not-found");
 const errorHandlerMiddleware = require("./middleware/error-handler");
+const authRouter = require("./routes/authRoutes");
 
 app.use(express.static("./public"));
 app.use(express.json());
@@ -51,11 +52,13 @@ if (process.env.NODE_ENV === "development") {
 }
 app.use(morgan("dev"));
 
-// Routes
-
+// Test Routes
 app.get("/api/v1/test-api", (req, res) => {
   res.send("Rest-API is working");
 });
+
+// Routes
+app.use("/api/v1/auth", authRouter);
 
 // Global Errors
 app.use(notFoundMiddleware);
