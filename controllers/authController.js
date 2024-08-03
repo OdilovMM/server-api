@@ -48,8 +48,12 @@ const login = async (req, res) => {
   res.status(StatusCodes.CREATED).json({ status: "success", user: tokenUser });
 };
 
-const logout = (req, res) => {
-  res.send("logout");
+const logout = async (req, res) => {
+  res.cookie("token", null, {
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true,
+  });
+  res.status(StatusCodes.OK).json({ message: "Logging out" });
 };
 
 module.exports = {
