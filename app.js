@@ -1,10 +1,14 @@
 require("dotenv").config();
 require("express-async-errors");
-
 const express = require("express");
 const app = express();
 const cloudianry = require("cloudinary").v2;
 const fileUpload = require("express-fileupload");
+const helmet = require("helmet");
+const cors = require("cors");
+const xss = require("xss-clean");
+const rateLimit = require("express-rate-limit");
+const morgan = require("morgan");
 
 cloudianry.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -15,18 +19,43 @@ cloudianry.config({
 // error handler imports
 const notFoundMiddleware = require("./middleware/not-found");
 const errorHandlerMiddleware = require("./middleware/error-handler");
-const productRouter = require("./routes/productRoutes");
 
 app.use(express.static("./public"));
 app.use(express.json());
 app.use(fileUpload({ useTempFiles: true }));
 
-app.get("/", (req, res) => {
-  res.send("<h1>File Upload Starter</h1>");
+// Limit requests from same API
+const limiter = rateLimit({
+  max: 500,
+  windowMs: 60 * 60 * 1000,
+  message: "Too many requests from this IP, please try again in an hour!",
+});
+app.use("/api", limiter);
+
+app.use("/api", limiter);
+app.use(helmet());
+app.use(
+  cors({
+    origin: "*",
+    credentials: true,
+  })
+);
+app.use(xss());
+app.use((req, res, next) => {
+  req.requestTime = new Date().toISOString();
+  next();
 });
 
+if (process.env.NODE_ENV === "development") {
+  app.use(morgan("dev"));
+}
+app.use(morgan("dev"));
+
 // Routes
-app.use("/api/v1/products", productRouter);
+
+app.get("/api/v1/test-api", (req, res) => {
+  res.send("Rest-API is working");
+});
 
 // Global Errors
 app.use(notFoundMiddleware);
