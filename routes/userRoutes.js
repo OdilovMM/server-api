@@ -7,9 +7,10 @@ const {
   updateUserPassword,
   deleteMe,
 } = require("../controllers/userController");
+const { isLoggedIn, allowTo } = require("../middleware/authenticate");
 const router = express.Router();
 
-router.get("/", getAllUsers);
+router.get("/", isLoggedIn, allowTo("admin"), getAllUsers);
 router.get("/:id", getSingleUser);
 router.get("/current-user", showCurrentUser);
 router.patch("/update-user", updateUser);
