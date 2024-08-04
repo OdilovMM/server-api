@@ -13,8 +13,8 @@ const { isLoggedIn, allowTo } = require("../middleware/authenticate");
 router.get("/", isLoggedIn, allowTo("admin"), getAllUsers);
 router.get("/current-user", isLoggedIn, showMe);
 router.patch("/update-password", isLoggedIn, updatePassword);
-router.patch("/update-user",isLoggedIn, updateUser);
-router.get("/:id", getSingleUser);
+router.patch("/update-user", isLoggedIn, updateUser);
+router.get("/:id", isLoggedIn, getSingleUser);
 router.delete("/delete-me", deleteMe);
 
 module.exports = router;

@@ -3,6 +3,7 @@ const User = require("../models/userModel");
 const { StatusCodes } = require("http-status-codes");
 const createTokenUser = require("../utils/createTokenUser");
 const { attachCookieResponse } = require("../utils/jwt");
+const isAllowedTo = require("../utils/isAllowedTo");
 
 const getAllUsers = async (req, res) => {
   const users = await User.find({ role: "user" }).select("-password");
@@ -12,9 +13,13 @@ const getAllUsers = async (req, res) => {
 
 const getSingleUser = async (req, res) => {
   const user = await User.findById({ _id: req.params.id }).select("-password");
+
+  console.log(req.user)
   if (!user) {
     throw new NotFoundError("There is no user with that id");
   }
+  isAllowedTo(req.user, user._id);
+
   res.status(StatusCodes.OK).json({ user });
 };
 
