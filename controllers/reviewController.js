@@ -23,16 +23,21 @@ const addReview = async (req, res) => {
 
   req.body.user = req.user.userId;
   const review = await Review.create(req.body);
-
   res.status(StatusCodes.CREATED).json({ msg: "A Review added", review });
 };
 
-const getAllReviews = (req, res) => {
-  res.send("Review Controller");
+const getAllReviews = async (req, res) => {
+  const reviews = await Review.find({});
+  const countReviews = await Review.find({}).countDocuments();
+  res.status(StatusCodes.OK).json({ reviews, countReviews });
 };
 
-const getSingleReview = (req, res) => {
-  res.send("Review Controller");
+const getSingleReview = async (req, res) => {
+  const review = await Review.findOne({ _id: req.params.reviewId });
+  if (!review) {
+    throw new NotFoundError("No review found with that id");
+  }
+  res.status(StatusCodes.OK).json({ review });
 };
 
 const updateReview = (req, res) => {
