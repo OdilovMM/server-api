@@ -2,6 +2,7 @@ const { StatusCodes } = require("http-status-codes");
 const { CustomAPIError, NotFoundError, BadRequestError } = require("../errors");
 const Review = require("../models/reviewModel");
 const Product = require("../models/productModel");
+const isAllowedTo = require("../utils/isAllowedTo");
 
 const addReview = async (req, res) => {
   const { product: productId } = req.body;
@@ -40,12 +41,20 @@ const getSingleReview = async (req, res) => {
   res.status(StatusCodes.OK).json({ review });
 };
 
-const updateReview = (req, res) => {
-  res.send("Review Controller");
+const updateReview = async (req, res) => {
+  res.status(StatusCodes.OK).json({ msg: "success" });
 };
 
-const deleteReview = (req, res) => {
-  res.send("Review Controller");
+const deleteReview = async (req, res) => {
+  const review = await Review.findOne({ _id: req.params.reviewId });
+  if (!review) {
+    throw new NotFoundError(
+      "Unauthorized! You can't delete someone else's review"
+    );
+  }
+  isAllowedTo(req.user, review.user);
+  await review.deleteOne();
+  res.status(StatusCodes.OK).json({ msg: "Review deleted" });
 };
 
 module.exports = {
