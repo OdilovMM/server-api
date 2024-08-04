@@ -42,7 +42,23 @@ const getSingleReview = async (req, res) => {
 };
 
 const updateReview = async (req, res) => {
-  res.status(StatusCodes.OK).json({ msg: "success" });
+  const { rating, title, comment } = req.body;
+  const review = await Review.findOne({ _id: req.params.reviewId });
+
+  if (!review) {
+    throw new NotFoundError(
+      "Unauthorized! You can't delete someone else's review"
+    );
+  }
+
+  isAllowedTo(req.user, review.user);
+  
+  review.rating = rating;
+  review.title = title;
+  review.comment = comment;
+  await review.save();
+
+  res.status(StatusCodes.OK).json({ msg: "Review updated", review });
 };
 
 const deleteReview = async (req, res) => {
