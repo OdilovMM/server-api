@@ -1,18 +1,18 @@
 const express = require("express");
+const router = express.Router();
 const {
   getAllUsers,
   getSingleUser,
-  showCurrentUser,
   updateUser,
   updateUserPassword,
   deleteMe,
+  showMe,
 } = require("../controllers/userController");
 const { isLoggedIn, allowTo } = require("../middleware/authenticate");
-const router = express.Router();
 
 router.get("/", isLoggedIn, allowTo("admin"), getAllUsers);
+router.get("/current-user",isLoggedIn, showMe);
 router.get("/:id", getSingleUser);
-router.get("/current-user", showCurrentUser);
 router.patch("/update-user", updateUser);
 router.patch("/user-password", updateUserPassword);
 router.delete("/delete-me", deleteMe);

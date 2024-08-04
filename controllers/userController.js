@@ -21,12 +21,10 @@ const getSingleUser = async (req, res) => {
   res.status(StatusCodes.OK).json({ user });
 };
 
-const showCurrentUser = async (req, res) => {
-  res.send("userController");
-};
+const updateUser = async (req, res) => {};
 
-const updateUser = async (req, res) => {
-  res.send("userController");
+const showMe = async (req, res) => {
+  res.status(StatusCodes.OK).json({ user: req.user });
 };
 
 const updateUserPassword = async (req, res) => {
@@ -40,8 +38,8 @@ const deleteMe = async (req, res) => {
 module.exports = {
   getAllUsers,
   getSingleUser,
-  showCurrentUser,
   updateUser,
   updateUserPassword,
   deleteMe,
+  showMe,
 };
