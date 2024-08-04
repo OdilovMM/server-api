@@ -1,8 +1,14 @@
 const { CustomAPIError } = require("../errors");
 const Product = require("../models/productModel");
+const { StatusCodes } = require("http-status-codes");
 
 const addProduct = async (req, res) => {
-  res.send("Product controller");
+  req.body.user = req.user.userId;
+
+  const newProduct = await Product.create(req.body);
+  res
+    .status(StatusCodes.CREATED)
+    .json({ msg: "A new Product added", newProduct });
 };
 
 const getAllProducts = async (req, res) => {
