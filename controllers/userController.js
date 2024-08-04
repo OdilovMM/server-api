@@ -27,19 +27,33 @@ const showMe = async (req, res) => {
   res.status(StatusCodes.OK).json({ user: req.user });
 };
 
-const updateUserPassword = async (req, res) => {
-  res.send("userController");
+const updatePassword = async (req, res) => {
+  const { oldPassword, newPassword } = req.body;
+  console.log(req.user);
+
+  if (!oldPassword || !newPassword) {
+    throw new BadRequestError("Please, Enter all fields");
+  }
+  const user = await User.findOne({ _id: req.user.userId });
+  console.log(user);
+
+  const isMatchPassword = await user.comparePassword(oldPassword);
+  if (!isMatchPassword) {
+    throw new BadRequestError("Please, Enter correct old password");
+  }
+
+  user.password = newPassword;
+  await user.save();
+  res.status(StatusCodes.OK).json({ msg: "Password updated" });
 };
 
-const deleteMe = async (req, res) => {
-  res.send("userController");
-};
+const deleteMe = async (req, res) => {};
 
 module.exports = {
   getAllUsers,
   getSingleUser,
   updateUser,
-  updateUserPassword,
+  updatePassword,
   deleteMe,
   showMe,
 };
