@@ -1,11 +1,8 @@
-const {
-  CustomAPIError,
-  BadRequestError,
-  UnauthenticatedError,
-  NotFoundError,
-} = require("../errors");
+const { BadRequestError, NotFoundError } = require("../errors");
 const User = require("../models/userModel");
 const { StatusCodes } = require("http-status-codes");
+const createTokenUser = require("../utils/createTokenUser");
+const { attachCookieResponse } = require("../utils/jwt");
 
 const getAllUsers = async (req, res) => {
   const users = await User.find({ role: "user" }).select("-password");
@@ -21,7 +18,24 @@ const getSingleUser = async (req, res) => {
   res.status(StatusCodes.OK).json({ user });
 };
 
-const updateUser = async (req, res) => {};
+const updateUser = async (req, res) => {
+  const { email, name } = req.body;
+  if (!email || !name) {
+    throw new BadRequestError("Please, Enter all fields");
+  }
+
+  const user = await User.findOneAndUpdate(
+    { _id: req.user.userId },
+    { email, name },
+    {
+      new: true,
+      runValidators: true,
+    }
+  );
+  const tokenUser = createTokenUser(user);
+  attachCookieResponse({ res, user: tokenUser });
+  res.status(StatusCodes.OK).json({ user: tokenUser });
+};
 
 const showMe = async (req, res) => {
   res.status(StatusCodes.OK).json({ user: req.user });
@@ -29,14 +43,11 @@ const showMe = async (req, res) => {
 
 const updatePassword = async (req, res) => {
   const { oldPassword, newPassword } = req.body;
-  console.log(req.user);
 
   if (!oldPassword || !newPassword) {
     throw new BadRequestError("Please, Enter all fields");
   }
   const user = await User.findOne({ _id: req.user.userId });
-  console.log(user);
-
   const isMatchPassword = await user.comparePassword(oldPassword);
   if (!isMatchPassword) {
     throw new BadRequestError("Please, Enter correct old password");

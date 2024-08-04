@@ -2,6 +2,7 @@ const { BadRequestError, UnauthenticatedError } = require("../errors");
 const User = require("../models/userModel");
 const { StatusCodes } = require("http-status-codes");
 const { attachCookieResponse } = require("../utils/jwt");
+const createTokenUser = require("../utils/createTokenUser");
 
 const register = async (req, res) => {
   const { email, name, mobile, password } = req.body;
@@ -22,7 +23,7 @@ const register = async (req, res) => {
     mobile,
   });
 
-  const tokenUser = { name: user.name, userId: user._id, role: user.role };
+  const tokenUser = createTokenUser(user);
   attachCookieResponse({ res, user: tokenUser });
   res.status(StatusCodes.CREATED).json({ status: "success", user: tokenUser });
 };
@@ -43,9 +44,9 @@ const login = async (req, res) => {
   if (!isMatchPassword) {
     throw new UnauthenticatedError("Incorrect password");
   }
-  const tokenUser = { name: user.name, userId: user._id, role: user.role };
+  const tokenUser = createTokenUser(user);
   attachCookieResponse({ res, user: tokenUser });
-  res.status(StatusCodes.CREATED).json({ status: "success", user: tokenUser });
+  res.status(StatusCodes.OK).json({ status: "success", user: tokenUser });
 };
 
 const logout = async (req, res) => {
