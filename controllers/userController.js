@@ -1,11 +1,24 @@
+const {
+  CustomAPIError,
+  BadRequestError,
+  UnauthenticatedError,
+  NotFoundError,
+} = require("../errors");
 const User = require("../models/userModel");
+const { StatusCodes } = require("http-status-codes");
 
 const getAllUsers = async (req, res) => {
-  res.send("userController");
+  const users = await User.find({ role: "user" }).select("-password");
+  const userCounts = await User.find({ role: "user" }).countDocuments();
+  res.status(StatusCodes.OK).json({ users, userCounts });
 };
 
 const getSingleUser = async (req, res) => {
-  res.send("userController");
+  const user = await User.findById({ _id: req.params.id }).select("-password");
+  if (!user) {
+    throw new NotFoundError("There is no user with that id");
+  }
+  res.status(StatusCodes.OK).json({ user });
 };
 
 const showCurrentUser = async (req, res) => {
