@@ -128,9 +128,63 @@ const verifyEmail = async (req, res) => {
   res.status(StatusCodes.OK).json({ msg: "Email verification successful" });
 };
 
+const forgotPassword = async (req, res) => {
+  const { email } = req.body;
+  const originLink = "http://localhost:3000";
+  if (!email) {
+    throw new BadRequestError("Please enter your email");
+  }
+  const user = await User.findOne({ email });
+
+  if (user) {
+    const passwordToken = crypto.randomBytes(50).toString("hex");
+
+    await sendResetPasswordEmail({
+      name: user.name,
+      email: user.email,
+      token: passwordToken,
+      originLink,
+    });
+
+    const minutesExp = 1000 * 60 * 10;
+    const passwordTokenExpTime = new Date(Date.now() + minutesExp);
+    user.passwordToken = passwordToken;
+    user.passwordTokenExpTime = passwordTokenExpTime;
+    await user.save();
+  } else {
+    throw new BadRequestError("You don't have an account in our platform");
+  }
+
+  res.status(StatusCodes.OK).json({ msg: "Please check your email" });
+};
+
+const resetPassword = async (req, res) => {
+  const { token, email, password } = req.body;
+  if (!token || !email || !password) {
+    throw new BadRequestError("Enter credentials");
+  }
+  const user = await User.findOne({ email });
+
+  if (user) {
+    const currentDate = new Date();
+
+    if (
+      user.passwordToken === token &&
+      user.passwordTokenExpTime > currentDate
+    ) {
+      user.password = password;
+      user.passwordToken = null;
+      user.passwordTokenExpTime = null;
+      await user.save();
+    }
+  }
+};
+
 module.exports = {
   register,
   login,
   logout,
   verifyEmail,
+  forgotPassword,
+  resetPassword,
 };
