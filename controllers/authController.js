@@ -4,6 +4,7 @@ const { StatusCodes } = require("http-status-codes");
 const { attachCookieResponse } = require("../utils/jwt");
 const createTokenUser = require("../utils/createTokenUser");
 const crypto = require("crypto");
+const sendVerificationEmail = require("../utils/sendVerificationEmail");
 
 const register = async (req, res) => {
   const { email, name, mobile, password } = req.body;
@@ -27,10 +28,18 @@ const register = async (req, res) => {
     verifyToken,
   });
 
+  const originLink = "http://localhost:3000"; // it front end host
+
+  await sendVerificationEmail({
+    name: user.name,
+    email: user.email,
+    verifyToken: user.verifyToken,
+    origin: originLink,
+  });
   // send verify token
   res.status(StatusCodes.CREATED).json({
     msg: "Success, Check your email to verify",
-    verifyToken: user.verifyToken,
+    verificationToken: user.verifyToken,
   });
 };
 
