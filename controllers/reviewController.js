@@ -28,7 +28,15 @@ const addReview = async (req, res) => {
 };
 
 const getAllReviews = async (req, res) => {
-  const reviews = await Review.find({});
+  const reviews = await Review.find({})
+    .populate({
+      path: "product",
+      select: "name brand price rating",
+    })
+    .populate({
+      path: "user",
+      select: "name",
+    });
   const countReviews = await Review.find({}).countDocuments();
   res.status(StatusCodes.OK).json({ reviews, countReviews });
 };
@@ -52,7 +60,7 @@ const updateReview = async (req, res) => {
   }
 
   isAllowedTo(req.user, review.user);
-  
+
   review.rating = rating;
   review.title = title;
   review.comment = comment;
@@ -72,6 +80,7 @@ const deleteReview = async (req, res) => {
   await review.deleteOne();
   res.status(StatusCodes.OK).json({ msg: "Review deleted" });
 };
+
 
 module.exports = {
   addReview,
