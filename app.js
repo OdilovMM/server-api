@@ -10,6 +10,7 @@ const xss = require("xss-clean");
 const rateLimit = require("express-rate-limit");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
+const mongoSanitize = require("express-mongo-sanitize");
 
 cloudianry.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -31,6 +32,8 @@ app.use(express.json());
 app.use(fileUpload({ useTempFiles: true }));
 app.use(cookieParser(process.env.JWT_SECRET));
 
+app.set("trust proxy", 1);
+
 // Limit requests from same API
 const limiter = rateLimit({
   max: 500,
@@ -48,6 +51,8 @@ app.use(
   })
 );
 app.use(xss());
+app.use(mongoSanitize());
+
 app.use((req, res, next) => {
   req.requestTime = new Date().toISOString();
   next();
