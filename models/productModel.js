@@ -21,20 +21,9 @@ const productSchema = new mongoose.Schema(
       required: "/uploads/default.jpg",
     },
     category: {
-      type: String,
-      required: [true, "A product category is mandatory"],
-      enum: [
-        "office",
-        "kitchen",
-        "bed",
-        "gardening",
-        "sports",
-        "holiday",
-        "school",
-        "summer",
-        "working",
-        "leisure",
-      ],
+      type: mongoose.Types.ObjectId,
+      ref: "Category",
+      required: true,
     },
     brand: {
       type: String,
@@ -99,6 +88,13 @@ const productSchema = new mongoose.Schema(
 
 productSchema.virtual("reviews", {
   ref: "Review",
+  localField: "_id",
+  foreignField: "product",
+  justOne: false,
+});
+
+productSchema.virtual("categories", {
+  ref: "Category",
   localField: "_id",
   foreignField: "product",
   justOne: false,

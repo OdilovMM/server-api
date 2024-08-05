@@ -100,7 +100,9 @@ const getAllProducts = async (req, res) => {
 
 const getSingleProduct = async (req, res) => {
   const { productId } = req.params;
-  const product = await Product.findOne({ _id: productId }).populate("reviews");
+  const product = await Product.findOne({ _id: productId })
+    .populate("reviews")
+    .populate("category", "name image");
 
   if (!product) {
     throw new NotFoundError("No Product found with that ID");
@@ -130,7 +132,7 @@ const deleteProduct = async (req, res) => {
     throw new NotFoundError("No Product found with that ID");
   }
   await product.deleteOne();
-  
+
   res.status(StatusCodes.OK).json({ msg: "A product deleted" });
 };
 
