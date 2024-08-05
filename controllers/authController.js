@@ -3,6 +3,7 @@ const User = require("../models/userModel");
 const { StatusCodes } = require("http-status-codes");
 const { attachCookieResponse } = require("../utils/jwt");
 const createTokenUser = require("../utils/createTokenUser");
+const crypto = require("crypto");
 
 const register = async (req, res) => {
   const { email, name, mobile, password } = req.body;
@@ -16,16 +17,21 @@ const register = async (req, res) => {
     throw new BadRequestError("Please, provide all credentials");
   }
 
+  const verifyToken = crypto.randomBytes(30).toString("hex");
+
   const user = await User.create({
     name,
     email,
     password,
     mobile,
+    verifyToken,
   });
 
-  const tokenUser = createTokenUser(user);
-  attachCookieResponse({ res, user: tokenUser });
-  res.status(StatusCodes.CREATED).json({ status: "success", user: tokenUser });
+  // send verify token
+  res.status(StatusCodes.CREATED).json({
+    msg: "Success, Check your email to verify",
+    verifyToken: user.verifyToken,
+  });
 };
 
 const login = async (req, res) => {
@@ -44,6 +50,10 @@ const login = async (req, res) => {
   if (!isMatchPassword) {
     throw new UnauthenticatedError("Incorrect password");
   }
+
+  if (!user.isVerified) {
+    throw new UnauthenticatedError("Please, Complete email verification!");
+  }
   const tokenUser = createTokenUser(user);
   attachCookieResponse({ res, user: tokenUser });
   res.status(StatusCodes.OK).json({ status: "success", user: tokenUser });
@@ -57,8 +67,30 @@ const logout = async (req, res) => {
   res.status(StatusCodes.OK).json({ message: "Logging out" });
 };
 
+const verifyEmail = async (req, res) => {
+  const { verifyToken, email } = req.body;
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    throw new UnauthenticatedError("Failed to verify email");
+  }
+
+  if (user.verifyToken !== verifyToken) {
+    throw new UnauthenticatedError("Failed to verify email");
+  }
+
+  user.isVerified = true;
+  user.verified = Date.now();
+  user.verifyToken = "";
+
+  await user.save();
+
+  res.status(StatusCodes.OK).json({ msg: "Email verification successful" });
+};
+
 module.exports = {
   register,
   login,
   logout,
+  verifyEmail,
 };

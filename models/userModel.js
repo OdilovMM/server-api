@@ -36,9 +36,17 @@ const userSchema = new mongoose.Schema({
     required: true,
     minlength: 6,
   },
+  verifyToken: String,
+  isVerified: {
+    type: Boolean,
+    default: false,
+  },
+  verified: Date,
 });
 
 userSchema.pre("save", async function () {
+  if(!this.isModified('password')) return;
+  
   const salt = await bcrypt.genSalt(12);
   this.password = await bcrypt.hash(this.password, salt);
 });
