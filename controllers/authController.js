@@ -1,5 +1,6 @@
 const { BadRequestError, UnauthenticatedError } = require("../errors");
 const User = require("../models/userModel");
+const Token = require("../models/tokenModel");
 const { StatusCodes } = require("http-status-codes");
 const { attachCookieResponse } = require("../utils/jwt");
 const createTokenUser = require("../utils/createTokenUser");
@@ -64,7 +65,31 @@ const login = async (req, res) => {
     throw new UnauthenticatedError("Please, Complete email verification!");
   }
   const tokenUser = createTokenUser(user);
-  attachCookieResponse({ res, user: tokenUser });
+
+  let refreshToken = "";
+
+  const existToken = await Token.findOne({ user: user._id });
+
+  if (existToken) {
+    const { isValid } = existToken;
+    if (!isValid) {
+      throw new UnauthenticatedError("Invalid credentials!");
+    }
+    refreshToken = existToken.refreshToken;
+    attachCookieResponse({ res, user: tokenUser, refreshToken });
+    res.status(StatusCodes.OK).json({ status: "success", user: tokenUser });
+    return;
+  }
+
+  refreshToken = crypto.randomBytes(40).toString("hex");
+  const userAgent = req.headers["user-agent"];
+  const ip = req.ip;
+  const userToken = { refreshToken, ip, userAgent, user: user._id };
+
+  await Token.create(userToken);
+
+  attachCookieResponse({ res, user: tokenUser, refreshToken });
+
   res.status(StatusCodes.OK).json({ status: "success", user: tokenUser });
 };
 
