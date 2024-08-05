@@ -6,7 +6,7 @@ const createSendToken = ({ payload }) => {
   return token;
 };
 
-const verifyMyToken = ({ token }) => jwt.verify(token, process.env.JWT_SECRET);
+const verifyMyToken = ( token ) => jwt.verify(token, process.env.JWT_SECRET);
 
 const attachCookieResponse = ({ res, user, refreshToken }) => {
   const accessTokenExpiresIn = parseInt(process.env.JWT_ACCESS_TOKEN_EXPIRES_IN, 10); // In minutes

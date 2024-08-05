@@ -1,17 +1,33 @@
 const { UnauthenticatedError, UnauthorizedError } = require("../errors");
-const { verifyMyToken } = require("../utils/jwt");
+const { verifyMyToken, attachCookieResponse } = require("../utils/jwt");
+const Token = require("../models/tokenModel");
 
 // only logged users
 const isLoggedIn = async (req, res, next) => {
-  const token = req.signedCookies.token;
-
-  if (!token) {
-    throw new UnauthenticatedError("You are not logged in. Please, Log in");
-  }
+  const { refreshToken, accessToken } = req.signedCookies;
 
   try {
-    const { name, userId, role } = verifyMyToken({ token });
-    req.user = { name: name, userId: userId, role: role };
+    if (accessToken) {
+      const payload = verifyMyToken(accessToken);
+      req.user = payload.user;
+      return next();
+    }
+    const payload = verifyMyToken(refreshToken);
+    const existingToken = await Token.findOne({
+      user: payload.user.userId,
+      refreshToken: payload.refreshToken,
+    });
+
+    if (!existingToken || !existingToken?.isValid) {
+      throw new UnauthenticatedError("Authentication failed");
+    }
+    attachCookieResponse({
+      res,
+      user: payload.user,
+      refreshToken: existingToken.refreshToken,
+    });
+
+    res.user = payload.user;
     next();
   } catch (error) {
     throw new UnauthenticatedError("You are not logged in. Please, Log in");
