@@ -100,7 +100,7 @@ productSchema.virtual("categories", {
   justOne: false,
 });
 
-productSchema.pre("deleteOne", async function (next) {
+productSchema.pre("deleteOne",{ document: true, query: false }, async function (next) {
   await this.model("Review").deleteMany({ product: this._id });
 });
 
