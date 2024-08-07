@@ -94,15 +94,29 @@ const getAllProducts = async (req, res) => {
   const skip = (page - 1) * limit;
 
   result = result.skip(skip).limit(limit);
+
   const products = await result;
-  res.status(StatusCodes.OK).json({ products, count: products.length });
+  const totalProducts = await Product.countDocuments(queryObject);
+  const pageCount = Math.ceil(totalProducts / limit);
+  const categories = await Product.distinct("category");
+  const companies = await Product.distinct("brand");
+
+  res
+    .status(StatusCodes.OK)
+    .json({
+      products: products,
+      totalProducts,
+      meta: {
+        pagination: { page, pageSize: limit, pageCount, total: totalProducts },
+        categories: ["all", ...categories],
+        companies: ["all", ...companies],
+      },
+    });
 };
 
 const getSingleProduct = async (req, res) => {
   const { productId } = req.params;
-  const product = await Product.findOne({ _id: productId })
-    .populate("reviews")
-    .populate("category", "name image");
+  const product = await Product.findOne({ _id: productId }).populate("reviews");
 
   if (!product) {
     throw new NotFoundError("No Product found with that ID");
@@ -125,7 +139,7 @@ const updateProduct = async (req, res) => {
 };
 
 const deleteProduct = async (req, res) => {
-  console.log(req.params)
+  console.log(req.params);
   const { productId } = req.params;
   const product = await Product.findOne({ _id: productId });
 
