@@ -36,7 +36,6 @@ const isLoggedIn = async (req, res, next) => {
 
 // Role based authorization
 const allowTo = (...roles) => {
-  console.log("Role based:::", roles);
   return (req, res, next) => {
     if (!roles.includes(req.user.role)) {
       throw new UnauthenticatedError(
