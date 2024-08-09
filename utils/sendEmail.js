@@ -7,7 +7,7 @@ const sendEmail = async ({ to, subject, html }) => {
   const transporter = nodemailer.createTransport(nodemailerConfig);
 
   return transporter.sendMail({
-    from: '"Food Service API" <webdev@gmail.com>', 
+    from: `"E-commerce Web Server" <${process.env.SMTP_USER}>`, 
     to,
     subject,
     html,

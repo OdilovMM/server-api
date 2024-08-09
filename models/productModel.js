@@ -20,26 +20,40 @@ const productSchema = new mongoose.Schema(
       type: String,
       required: "/uploads/default.jpg",
     },
-    category: {
-      type: mongoose.Types.ObjectId,
-      ref: "Category",
-      required: true,
-    },
     brand: {
       type: String,
       required: [true, "A product brand is mandatory"],
       enum: {
         values: [
-          "adidas",
-          "nike",
-          "puma",
+          "Kimball International",
           "ikea",
-          "bosch",
-          "dewalt",
-          "samsung",
-          "sony",
-          "nestle",
-          "chocko",
+          "La-Z-Boy",
+          "ikea",
+          "Haworth",
+          "Knoll",
+          "Ashley Furniture Industries",
+          "Vanguard Furniture",
+          "Herman Miller",
+          "Steelcase",
+        ],
+        message: "{VALUES} is not exist",
+      },
+    },
+    category: {
+      type: String,
+      required: [true, "A product category is mandatory"],
+      enum: {
+        values: [
+          "bedroom",
+          "kitchen",
+          "gardening",
+          "outside",
+          "gym",
+          "sport",
+          "office",
+          "working",
+          "supermarket",
+          "holiday",
         ],
         message: "{VALUES} is not exist",
       },
@@ -93,14 +107,9 @@ productSchema.virtual("reviews", {
   justOne: false,
 });
 
-productSchema.virtual("categories", {
-  ref: "Category",
-  localField: "_id",
-  foreignField: "product",
-  justOne: false,
-});
 
-productSchema.pre("deleteOne", async function (next) {
+
+productSchema.pre("deleteOne",{ document: true, query: false }, async function (next) {
   await this.model("Review").deleteMany({ product: this._id });
 });
 

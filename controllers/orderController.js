@@ -11,6 +11,7 @@ const paymentApi = async ({ amount, currency }) => {
 
 const addOrder = async (req, res) => {
   const { items: cartItems, tax, shippingFee } = req.body;
+
   if (!cartItems || cartItems.length < 1) {
     throw new BadRequestError("No items provided");
   }

@@ -13,7 +13,7 @@ const addProduct = async (req, res) => {
 };
 
 const getAllProducts = async (req, res) => {
-  console.log(req.query);
+
 
   const {
     name,
@@ -30,6 +30,7 @@ const getAllProducts = async (req, res) => {
     fields,
     numberFilters,
   } = req.query;
+  console.log(sort);
 
   const queryObject = {};
 
@@ -80,29 +81,49 @@ const getAllProducts = async (req, res) => {
 
   let result = Product.find(queryObject);
   if (sort) {
-    const sortList = sort.split(",").join(" ");
-    result = result.sort(sortList);
+    if (sort === "high") {
+      result = result.sort({ price: -1 });
+    } else if (sort === "low") {
+      result = result.sort({ price: 1 });
+    } else {
+      const sortList = sort.split(",").join(" ");
+      result = result.sort(sortList);
+    }
   } else {
     result = result.sort("createdAt");
   }
+
   if (fields) {
     const fieldList = fields.split(",").join(" ");
     result = result.select(fieldList);
   }
   const page = Number(req.query.page) || 1;
-  const limit = Number(req.query.number) || 10;
+  const limit = Number(req.query.number) || 6;
   const skip = (page - 1) * limit;
 
   result = result.skip(skip).limit(limit);
+
   const products = await result;
-  res.status(StatusCodes.OK).json({ products, count: products.length });
+  const totalProducts = await Product.countDocuments(queryObject);
+  const pageCount = Math.ceil(totalProducts / limit);
+  const categories = await Product.distinct("category");
+  const companies = await Product.distinct("brand");
+
+  res.status(StatusCodes.OK).json({
+    products: products,
+    totalProducts,
+    meta: {
+      pagination: { page, pageSize: limit, pageCount, total: totalProducts },
+      categories: ["", ...categories],
+      companies: ["", ...companies],
+    },
+  });
 };
+
 
 const getSingleProduct = async (req, res) => {
   const { productId } = req.params;
-  const product = await Product.findOne({ _id: productId })
-    .populate("reviews")
-    .populate("category", "name image");
+  const product = await Product.findOne({ _id: productId }).populate("reviews");
 
   if (!product) {
     throw new NotFoundError("No Product found with that ID");
@@ -125,6 +146,7 @@ const updateProduct = async (req, res) => {
 };
 
 const deleteProduct = async (req, res) => {
+  console.log(req.params);
   const { productId } = req.params;
   const product = await Product.findOne({ _id: productId });
 
