@@ -12,7 +12,7 @@ dotenv.config({ path: "./.env" });
 const app = require("./app");
 
 mongoose
-  .connect(process.env.DB_HOME, {})
+  .connect(process.env.DB_URL, {})
   .then(() => console.log("DB connection successful!"));
 
 const port = process.env.PORT || 3000;
