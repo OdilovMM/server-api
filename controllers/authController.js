@@ -29,7 +29,7 @@ const register = async (req, res) => {
     verifyToken,
   });
 
-  const originLink = "http://localhost:3000"; // it front end host
+  const originLink = "http://localhost:5173"; // it front end host
 
   await sendVerificationEmail({
     name: user.name,
@@ -130,7 +130,7 @@ const verifyEmail = async (req, res) => {
 
 const forgotPassword = async (req, res) => {
   const { email } = req.body;
-  const originLink = "http://localhost:3000";
+  const originLink = "http://localhost:5173";
   if (!email) {
     throw new BadRequestError("Please enter your email");
   }
